@@ -2,10 +2,7 @@ package com.example.lenovo.gymclub;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -14,7 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import cn.bmob.v3.Bmob;
 
@@ -39,8 +36,8 @@ public class MainActivity extends AppCompatActivity
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new DashboardFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_home);
+                    new LogInFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_login);
         }
         Bmob.initialize(this, "195a6a49e89f424109576c656aa21e46");
 
@@ -83,25 +80,48 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
+        TextView textview = findViewById(R.id.header_userName);
         if (id == R.id.nav_home) {
             // Handle the camera action
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new DashboardFragment()).commit();
+            if(!textview.getText().equals("please log in")){
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                        new DashboardFragment()).commit();
+            }else{
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.content_main, new LogInFragment());
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
         } else if (id == R.id.nav_schedule) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new ScheduleFragment()).commit();
+            if(!textview.getText().equals("please log in")){
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                        new ScheduleFragment()).commit();
+            }else{
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.content_main, new LogInFragment());
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
         } else if (id == R.id.nav_sports) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new SportsFragment()).commit();
+            if(!textview.getText().equals("please log in")){
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                        new SportsFragment()).commit();
+            }else{
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.content_main, new LogInFragment());
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
         } else if (id == R.id.nav_coach) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new CoachesFragment()).commit();
-        } else if (id == R.id.nav_apply) {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.content_main, new ApplyFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
+            if(!textview.getText().equals("please log in")){
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                        new CoachesFragment()).commit();
+            } else if (id == R.id.nav_apply) {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.content_main, new ApplyFragment());
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
         } else if (id == R.id.nav_signup) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.content_main, new SignUpFragment());

@@ -30,10 +30,8 @@ public class LogInFragment extends Fragment implements View.OnClickListener{
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.log_in, container, false);
-
         mEtUserName = (EditText) view.findViewById(R.id.LogInUserName);
         mEtPassWord = (EditText) view.findViewById(R.id.LogInUserPassword);
-
         Button mBtn = (Button) view.findViewById(R.id.login);
         mBtn.setOnClickListener(this);
 
@@ -41,7 +39,7 @@ public class LogInFragment extends Fragment implements View.OnClickListener{
     }
     @Override
     public void onClick(View v) {
-        String username = mEtUserName.getText().toString();
+        final String username = mEtUserName.getText().toString();
         String password = mEtPassWord.getText().toString();
 
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
@@ -57,6 +55,8 @@ public class LogInFragment extends Fragment implements View.OnClickListener{
             public void done(BmobUser bmobUser, BmobException e) {
                 if(e==null){
                     Toast.makeText(getActivity(),"Log in Successful.",Toast.LENGTH_SHORT).show();
+                    TextView textview = getActivity().findViewById(R.id.header_userName);
+                    textview.setText(username);
                 }else{
                     Toast.makeText(getActivity(),"Log in Failure.",Toast.LENGTH_SHORT).show();
                 }
