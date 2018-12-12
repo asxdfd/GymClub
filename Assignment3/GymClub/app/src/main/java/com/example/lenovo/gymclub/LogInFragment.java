@@ -6,15 +6,15 @@ package com.example.lenovo.gymclub;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebViewFragment;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,16 +30,19 @@ public class LogInFragment extends Fragment implements View.OnClickListener{
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.log_in, container, false);
+
         mEtUserName = (EditText) view.findViewById(R.id.LogInUserName);
         mEtPassWord = (EditText) view.findViewById(R.id.LogInUserPassword);
+
         Button mBtn = (Button) view.findViewById(R.id.login);
         mBtn.setOnClickListener(this);
 
         return view;
     }
+
     @Override
     public void onClick(View v) {
-        final String username = mEtUserName.getText().toString();
+        String username = mEtUserName.getText().toString();
         String password = mEtPassWord.getText().toString();
 
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
@@ -47,18 +50,28 @@ public class LogInFragment extends Fragment implements View.OnClickListener{
             return;
         }
 
-        BmobUser user = new BmobUser();
+        BmobUser user = MainActivity.getUser();
         user.setUsername(username);
         user.setPassword(password);
         user.login(new SaveListener<BmobUser>(){
             @Override
             public void done(BmobUser bmobUser, BmobException e) {
-                if(e==null){
-                    Toast.makeText(getActivity(),"Log in Successful.",Toast.LENGTH_SHORT).show();
-                    TextView textview = getActivity().findViewById(R.id.header_userName);
-                    textview.setText(username);
-                }else{
-                    Toast.makeText(getActivity(),"Log in Failure.",Toast.LENGTH_SHORT).show();
+                if(e == null) {
+                    Toast.makeText(getActivity(),"Log in Successfully.",Toast.LENGTH_SHORT).show();
+                    MainActivity activity = (MainActivity) getActivity();
+                    if (activity != null) {
+                        TextView textView = activity.findViewById(R.id.info_username);
+                        textView.setText(bmobUser.getUsername());
+                        NavigationView navigationView = activity.findViewById(R.id.nav_view);
+                        Menu communicateMenu = navigationView.getMenu().getItem(5).getSubMenu();
+                        communicateMenu.getItem(1).setVisible(false);
+                        communicateMenu.getItem(2).setVisible(false);
+                        communicateMenu.getItem(3).setVisible(true);
+                        while (MainActivity.getFragment() > 0)
+                            activity.onBackPressed();
+                    }
+                } else {
+                    Toast.makeText(getActivity(),"Log in Failed.",Toast.LENGTH_SHORT).show();
                 }
             }
         });

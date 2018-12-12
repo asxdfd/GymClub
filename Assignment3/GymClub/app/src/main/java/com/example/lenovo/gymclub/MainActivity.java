@@ -1,8 +1,19 @@
 package com.example.lenovo.gymclub;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -11,12 +22,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import cn.bmob.v3.Bmob;
+import cn.bmob.v3.BmobUser;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    public static BmobUser user = new BmobUser();
+    private int selectID = 0;
+    private static boolean isExit = false;
+    private static int fragment = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +59,21 @@ public class MainActivity extends AppCompatActivity
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                    new LogInFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_login);
+                    new DashboardFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_home);
         }
         Bmob.initialize(this, "195a6a49e89f424109576c656aa21e46");
-
     }
+
+    @SuppressLint("HandlerLeak")
+    Handler mHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
 
     @Override
     public void onBackPressed() {
@@ -49,7 +81,17 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            if (fragment > 0) {
+                while(fragment > 0) {
+                    super.onBackPressed();
+                    fragment--;
+                }
+                NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                navigationView.getMenu().getItem(selectID).setChecked(true);
+            } else if (exit()) {
+                super.onBackPressed();
+                System.exit(0);
+            }
         }
     }
 
@@ -75,66 +117,97 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressLint("SetTextI18n")
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        TextView textview = findViewById(R.id.header_userName);
+
         if (id == R.id.nav_home) {
             // Handle the camera action
-            if(!textview.getText().equals("please log in")){
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                        new DashboardFragment()).commit();
-            }else{
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.content_main, new LogInFragment());
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
+            selectID = 0;
+
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                    new DashboardFragment()).commit();
         } else if (id == R.id.nav_schedule) {
-            if(!textview.getText().equals("please log in")){
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                        new ScheduleFragment()).commit();
-            }else{
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.content_main, new LogInFragment());
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
+            selectID = 1;
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                    new ScheduleFragment()).commit();
         } else if (id == R.id.nav_sports) {
-            if(!textview.getText().equals("please log in")){
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                        new SportsFragment()).commit();
-            }else{
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.content_main, new LogInFragment());
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
+            selectID = 2;
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                    new SportsFragment()).commit();
         } else if (id == R.id.nav_coach) {
-            if(!textview.getText().equals("please log in")){
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
-                        new CoachesFragment()).commit();
-            } else if (id == R.id.nav_apply) {
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.content_main, new ApplyFragment());
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
+            selectID = 3;
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_main,
+                    new CoachesFragment()).commit();
+        } else if (id == R.id.nav_apply) {
+            fragment++;
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.getMenu().getItem(selectID).setChecked(false);
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.content_main, new ApplyFragment());
+            transaction.addToBackStack(null);
+            transaction.commit();
         } else if (id == R.id.nav_signup) {
+            fragment++;
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.getMenu().getItem(selectID).setChecked(false);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.content_main, new SignUpFragment());
             transaction.addToBackStack(null);
             transaction.commit();
         } else if (id == R.id.nav_login) {
+            fragment++;
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.getMenu().getItem(selectID).setChecked(false);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.content_main, new LogInFragment());
             transaction.addToBackStack(null);
             transaction.commit();
+        } else if (id == R.id.nav_logout) {
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            Menu communicateMenu = navigationView.getMenu().getItem(5).getSubMenu();
+            communicateMenu.getItem(1).setVisible(true);
+            communicateMenu.getItem(2).setVisible(true);
+            communicateMenu.getItem(3).setVisible(false);
+            Toast.makeText(getApplicationContext(), "Log out successfully",
+                    Toast.LENGTH_SHORT).show();
+            TextView textView = (TextView) findViewById(R.id.info_username);
+            textView.setText("Please login first");
+            user.setUsername(null);
+            user.setPassword(null);
+            BmobUser.logOut();
+        } else if (id == R.id.nav_video) {
+            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+            Intent intent = new Intent(this, VideoActivity.class);
+            startActivity(intent);
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private boolean exit() {
+        if (!isExit) {
+            isExit = true;
+            Toast.makeText(getApplicationContext(), "Click again to exit",
+                    Toast.LENGTH_SHORT).show();
+            // 利用handler延迟发送更改状态信息
+            mHandler.sendEmptyMessageDelayed(0, 2000);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static BmobUser getUser() {
+        return user;
+    }
+
+    public static int getFragment() {
+        return fragment;
+    }
+
 }

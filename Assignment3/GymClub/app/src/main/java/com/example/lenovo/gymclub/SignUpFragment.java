@@ -57,7 +57,6 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
             public void done(BmobUser bmobUser, BmobException e) {
                 if(e==null){
                     Toast.makeText(getActivity(),"Sign Up Successful.",Toast.LENGTH_SHORT).show();
-
                 }else{
                     Toast.makeText(getActivity(),"Sign Up Failure.",Toast.LENGTH_SHORT).show();
                 }
