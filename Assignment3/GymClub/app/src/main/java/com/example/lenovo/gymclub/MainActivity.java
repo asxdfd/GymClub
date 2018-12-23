@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity
                     new DashboardFragment()).commit();
             navigationView.setCheckedItem(R.id.nav_home);
         }
-        Bmob.initialize(this, "195a6a49e89f424109576c656aa21e46");
+        Bmob.initialize(this, "163858a36e4095d164e352750e1244c7");
     }
 
     @SuppressLint("HandlerLeak")
